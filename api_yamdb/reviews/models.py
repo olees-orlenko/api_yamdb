@@ -90,22 +90,22 @@ class Genre(models.Model):
         ordering = ['name']
 
 
-class User(models.Model):
-    username = models.CharField(max_length=150, unique=True)
-    email = models.EmailField(max_length=254, unique=True)
-    first_name = models.CharField(max_length=150)
-    last_name = models.CharField(max_length=150)
-    bio = models.TextField(blank=True)
-    ROLE_CHOICES = [("user", "user"),
-                    ("moderator", "moderator"),
-                    ("admin", "admin")]
-    role = models.CharField(max_length=9, choices=ROLE_CHOICES)
+# class User(models.Model):
+#     username = models.CharField(max_length=150, unique=True)
+#     email = models.EmailField(max_length=254, unique=True)
+#     first_name = models.CharField(max_length=150)
+#     last_name = models.CharField(max_length=150)
+#     bio = models.TextField(blank=True)
+#     ROLE_CHOICES = [("user", "user"),
+#                     ("moderator", "moderator"),
+#                     ("admin", "admin")]
+#     role = models.CharField(max_length=9, choices=ROLE_CHOICES)
 
-    class Meta:
-        ordering = ["username"]
+#     class Meta:
+#         ordering = ["username"]
 
-    def __str__(self):
-        return self.username
+#     def __str__(self):
+#         return self.username
 
 
 class Title(models.Model):
