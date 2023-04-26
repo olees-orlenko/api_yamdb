@@ -4,6 +4,8 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class User(AbstractUser):
+
+
     ADMIN = 'admin'
     MODERATOR = 'moderator'
     USER = 'user'
@@ -62,7 +64,7 @@ class User(AbstractUser):
 
     def __str__(self) -> str:
         return self.username
-    
+
 
 class Category(models.Model):
     name = models.CharField(max_length=256)
@@ -88,24 +90,6 @@ class Genre(models.Model):
         verbose_name = 'genre'
         verbose_name_plural = 'genres'
         ordering = ['name']
-
-
-class User(models.Model):
-    username = models.CharField(max_length=150, unique=True)
-    email = models.EmailField(max_length=254, unique=True)
-    first_name = models.CharField(max_length=150)
-    last_name = models.CharField(max_length=150)
-    bio = models.TextField(blank=True)
-    ROLE_CHOICES = [("user", "user"),
-                    ("moderator", "moderator"),
-                    ("admin", "admin")]
-    role = models.CharField(max_length=9, choices=ROLE_CHOICES)
-
-    class Meta:
-        ordering = ["username"]
-
-    def __str__(self):
-        return self.username
 
 
 class Title(models.Model):
