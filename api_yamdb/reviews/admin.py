@@ -4,16 +4,16 @@ from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class TitleAdmin(admin.ModelAdmin):
-    list_display = ('pk',
-                    'name',
-                    'category',
-                    'genre',
-                    'description',
-                    'year',
-                    'rating'
-                    )
-    search_fields = ('name',)
-    list_filter = ('year',)
+    list_display = (
+        'pk',
+        'name',
+        'year',
+        'category',
+        'description'
+    )
+    list_editable = ('name', 'year', 'description')
+    search_fields = ('name', 'year', 'category', 'genre')
+    list_filter = ('name', 'year', 'category', 'genre')
     empty_value_display = '-пусто-'
 
 
@@ -39,4 +39,3 @@ admin.site.register(Category, CategoryAdmin)
 admin.site.register(Comment, CommentAdmin)
 admin.site.register(Genre, GenreAdmin)
 admin.site.register(Review, ReviewAdmin)
-
