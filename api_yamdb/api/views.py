@@ -2,10 +2,12 @@ from rest_framework import filters, status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.db import IntegrityError
 
 from reviews.models import Comment, Review, Title, User
 from api.serializers import (
@@ -24,21 +26,29 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class UserSignUpView(APIView):
-    serializer = UserSignUpSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    username = serializer.validated_data['username']
-    email = serializer.validated_data['email']
-    user, created = User.objects.get_or_create(
-        username=username, 
-        email=email
-    )
-    confirmation_code = default_token_generator.make_token(user)
-    send_mail(
-        subject='Подтверждение адреса электронной почты.',
-        message=f'Код подтверждения: {confirmation_code}',
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email]
-    )
+    def user_signup(request):
+        serializer = UserSignUpSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        username = serializer.validated_data['username']
+        email = serializer.validated_data['email']
+        try:
+            user, _ = User.objects.get_or_create(
+                username=username, 
+                email=email
+            )
+        except IntegrityError:
+            raise ValidationError(
+                'Имя пользователя или email уже используются',
+                status.HTTP_400_BAD_REQUEST
+            )
+        confirmation_code = default_token_generator.make_token(user)
+        send_mail(
+            subject='Подтверждение регистрации.',
+            message=f'Код подтверждения: {confirmation_code}',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email]
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
