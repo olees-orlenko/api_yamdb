@@ -1,4 +1,3 @@
-
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -60,6 +59,7 @@ class User(AbstractUser):
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
+
     def __str__(self) -> str:
         return self.username
     
@@ -72,8 +72,8 @@ class Category(models.Model):
         return self.name
 
     class Meta:
-        verbose_name = 'Категория'
-        verbose_name_plural = 'Категории'
+        verbose_name = 'category'
+        verbose_name_plural = 'categories'
         ordering = ['name']
 
 
@@ -85,8 +85,8 @@ class Genre(models.Model):
         return self.name
 
     class Meta:
-        verbose_name = 'Жанр'
-        verbose_name_plural = 'Жанры'
+        verbose_name = 'genre'
+        verbose_name_plural = 'genres'
         ordering = ['name']
 
 
@@ -109,24 +109,35 @@ class User(models.Model):
 
 
 class Title(models.Model):
-    name = models.CharField(max_length=250)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
-    description = models.TextField('Описание',)
-    year = models.IntegerField()
-    rating = models.IntegerField(null=True)
+
+
+    name = models.CharField(max_length=250, help_text='Название произведения')
+    categories = models.ForeignKey(
+        Category, verbose_name='Slug категории',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=False,
+    )
+    genre = models.ManyToManyField(
+        Genre, verbose_name='Slug жанра'
+    )
+    description = models.TextField('Описание', blank=True)
+    year = models.PositiveIntegerField(help_text='Год выхода произведения')
+    rating = models.PositiveIntegerField(null=True, default=None)
 
     def __str__(self):
         return self.name
 
     class Meta:
-        ordering = ['-year', 'name']
-        indexes = [
-            models.Index(fields=['name',
-                                 'category',
-                                 'genre',
-                                 'year'],
-                         name='title_index'), ]
+
+        ordering = ('-year',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'categories'],
+                name='unique_name_categories'
+            )
+        ]
+
 
 
 class Review(models.Model):
@@ -147,6 +158,7 @@ class Review(models.Model):
     pub_date = models.DateTimeField('Дата добавления',
                                     auto_now_add=True,
                                     db_index=True)
+    
 
     def __str__(self):
         return self.text[:15]
