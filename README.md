@@ -1,5 +1,4 @@
-# api_yamdb
-api_yamdb
+
 
 
 ### Как запустить проект:
@@ -54,4 +53,5 @@ python3 manage.py migrate
 ```
 python3 manage.py runserver
 ```
+
 
