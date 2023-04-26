@@ -28,8 +28,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'api',
-    'reviews',
-
+    'reviews.apps.ReviewsConfig',
 ]
 
 MIDDLEWARE = [
@@ -91,6 +90,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL="reviews.User"
 
 # Internationalization
 
