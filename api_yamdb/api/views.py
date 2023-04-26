@@ -1,16 +1,44 @@
-
-from django.shortcuts import render
-
-# Create your views here.
-
-from rest_framework import status, viewsets
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework import filters, status, viewsets
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
+from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 
-from reviews.models import Comment, Review, Title
-from api.serializers import CommentSerializer, ReviewSerializer
+from reviews.models import Comment, Review, Title, User
+from api.serializers import (
+    CommentSerializer, ReviewSerializer,
+    UserSerializer, TokenSerializer, UserSignUpSerializer) 
 
+
+class UserViewSet(viewsets.ModelViewSet):
+    http_method_names = ['get', 'post', 'patch', 'delete']   
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_class = []
+    lookup_field = 'username'
+    filter_backends = (filters.SearchFilter,) 
+    search_fields = ('username',)
+
+
+class UserSignUpView(APIView):
+    serializer = UserSignUpSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    username = serializer.validated_data['username']
+    email = serializer.validated_data['email']
+    user, created = User.objects.get_or_create(
+        username=username, 
+        email=email
+    )
+    confirmation_code = default_token_generator.make_token(user)
+    send_mail(
+        subject='Подтверждение адреса электронной почты.',
+        message=f'Код подтверждения: {confirmation_code}',
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email]
+    )
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
