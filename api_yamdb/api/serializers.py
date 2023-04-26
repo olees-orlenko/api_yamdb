@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-
 from reviews.models import Comment, Review, User
+
 
 class UserSerializer(serializers.ModelSerializer):
     
@@ -46,4 +46,3 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = '__all__'
         read_only_fields = ('id',)
-

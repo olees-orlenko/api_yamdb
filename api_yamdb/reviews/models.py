@@ -4,7 +4,6 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 
-
 class User(AbstractUser):
     ADMIN = 'admin'
     MODERATOR = 'moderator'
@@ -64,9 +63,6 @@ class User(AbstractUser):
     def __str__(self) -> str:
         return self.username
     
-
-
-
 
 class Category(models.Model):
     name = models.CharField(max_length=256)
@@ -184,4 +180,3 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ('-pub_date',)
-
