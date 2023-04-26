@@ -44,12 +44,8 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAdminOrReadOnly)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
 
-    def check_object_permissions(self, request, obj):
-        if request.user.role == "admin":
-            raise PermissionDenied()
-        return super().check_object_permissions(request, obj)
