@@ -1,3 +1,4 @@
+#from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -62,6 +63,7 @@ class User(AbstractUser):
     def __str__(self) -> str:
         return self.username
 
+
 class Category(models.Model):
 
     name = models.CharField(max_length=256)
@@ -93,7 +95,8 @@ class Genre(models.Model):
 class Title(models.Model):
 
     name = models.CharField(max_length=250, help_text='Название произведения')
-    categories = models.ForeignKey(
+    year = models.PositiveIntegerField(help_text='Год выхода произведения')
+    category = models.ForeignKey(
         Category, verbose_name='Slug категории',
         on_delete=models.SET_NULL,
         null=True,
@@ -103,7 +106,6 @@ class Title(models.Model):
         Genre, verbose_name='Slug жанра'
     )
     description = models.TextField('Описание', blank=True)
-    year = models.PositiveIntegerField(help_text='Год выхода произведения')
     rating = models.PositiveIntegerField(null=True, default=None)
 
 
@@ -114,10 +116,40 @@ class Title(models.Model):
         ordering = ('-year',)
         constraints = [
             models.UniqueConstraint(
-                fields=['name', 'categories'],
-                name='unique_name_categories'
+                fields=['name', 'category'],
+                name='unique_name_category'
             )
         ]
+
+
+class Review(models.Model):
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='reviews'
+    )
+    title = models.ForeignKey(
+        Title, on_delete=models.CASCADE, related_name='reviews'
+    )
+    score = models.PositiveSmallIntegerField('Оценка', validators=[
+            MaxValueValidator(10),
+            MinValueValidator(1),
+    ])
+    text = models.TextField('Текст отзыва')
+    pub_date = models.DateTimeField(
+        'Дата добавления', auto_now_add=True, db_index=True
+    )
+
+    def str(self):
+        return self.text[:15]
+
+    class Meta:
+        ordering = ('-pub_date',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'title'],
+                name='unique_review'
+            )
+        ]
+
 
 class Comment(models.Model):
     author = models.ForeignKey(User,

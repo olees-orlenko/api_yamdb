@@ -23,8 +23,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_filters',
-    'djoser',
     'rest_framework',
     'rest_framework_simplejwt',
     'api',
@@ -72,6 +70,7 @@ DATABASES = {
     }
 }
 
+AUTH_USER_MODEL="reviews.User"
 
 # Password validation
 
@@ -90,7 +89,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL="reviews.User"
 
 # Internationalization
 

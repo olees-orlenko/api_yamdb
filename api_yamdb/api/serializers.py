@@ -1,7 +1,7 @@
 feature/viewv-Sasha
 import datetime as dt
 from rest_framework import serializers
-from reviews.models import Genre, Title, Categoryб Comment, Review, User
+from reviews.models import Genre, Title, Category, Comment, Review, User
 from datetime import datetime as dt
 
 
@@ -98,4 +98,3 @@ class TitleCreateSerializer(serializers.ModelSerializer):
         if value > current_year:
             raise serializers.ValidationError('Проверьте год выхода!')
         return value
-
