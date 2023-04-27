@@ -1,9 +1,9 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
-from django_filters.rest_framework import DjangoFilterBackend
 from django.core.exceptions import PermissionDenied
 
 from rest_framework import filters, mixins, status, viewsets
@@ -16,11 +16,11 @@ from rest_framework.pagination import LimitOffsetPagination
 
 from reviews.models import Comment, Category, Genre, Review, Title, User
 from api.permissions import IsAdminOrReadOnly, IsAdminModeratorAuthor, IsAdmin
-from api.serializers import (GenreSerializer, GenreSerializer,
+from api.serializers import (GenreSerializer, UserSignUpSerializer,
                              TitleSerializer, CategorySerializer, 
                              TitleCreateSerializer, CommentSerializer,
                              ReviewSerializer, UserSerializer,
-                             TokenSerializer, UserSignUpSerializer)
+                             TokenSerializer)
 
 
 class TitleViewSet(viewsets.ModelViewSet):

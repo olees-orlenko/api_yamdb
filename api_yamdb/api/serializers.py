@@ -14,10 +14,9 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
     
 
-class UserSignUpSerializer(serializers.Serializer):
-    username = serializers.CharField(required=True, max_length=150)
-    email = serializers.EmailField(required=True, max_length=150)
-
+class UserSignUpSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(required=True, max_length=150) # исправила орфографическую ошибку в length
+    email = serializers.EmailField(required=True, max_length=150) # и здесь
 
     def validate_username(self, value):
         if value.lower() == 'me':
@@ -31,7 +30,7 @@ class UserSignUpSerializer(serializers.Serializer):
         model = User
     
 
-class TokenSerializer(serializers.Serializer):
+class TokenSerializer(serializers.ModelSerializer): # добавила Model, было serializers.Serializer
     username = serializers.CharField(required=True, max_length=150)
     confirmation_code = serializers.CharField(required=True)
 
