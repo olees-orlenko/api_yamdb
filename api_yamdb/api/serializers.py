@@ -1,4 +1,3 @@
-feature/viewv-Sasha
 import datetime as dt
 from rest_framework import serializers
 from reviews.models import Genre, Title, Category, Comment, Review, User
