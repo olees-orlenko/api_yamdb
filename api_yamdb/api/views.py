@@ -7,27 +7,28 @@ from django.db import IntegrityError
 from django.core.exceptions import PermissionDenied
 
 from rest_framework import filters, mixins, status, viewsets
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAdminUser)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import LimitOffsetPagination
 
 from reviews.models import Category, Genre, Review, Title, User
-from api.permissions import IsAdminOrReadOnly, IsAdminModeratorAuthor
-from api.serializers import (GenreSerializer,
+from api.permissions import IsAdminOrReadOnly, IsAdminModeratorAuthor, IsAdmin
+from api.serializers import (GenreSerializer, UserSignUpSerializer,
                              TitleSerializer, CategorySerializer, 
                              TitleCreateSerializer, CommentSerializer,
                              ReviewSerializer, UserSerializer,
-                             TokenSerializer, UserSignUpSerializer)
+                             TokenSerializer)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filterser_fields = ('category__slug', 'genre__slug', 'name', 'year')
-    pagination_class = (LimitOffsetPagination,)
-    permission_classes = (IsAdminOrReadOnly,)
+    pagination_class = LimitOffsetPagination
+    permission_classes = (IsAdminOrReadOnly, )
 
     def get_serializer_class(self):
         if self.action == 'list' or self.action == 'retrieve':
@@ -40,16 +41,17 @@ class GenreViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter,)
-    search_fields = ('^name',)
-    permission_classes = (IsAdminOrReadOnly)
+    search_fields = ('name',)
+    permission_classes = (IsAdminOrReadOnly, )
     lookup_field = 'slug'
+    pagination_class = LimitOffsetPagination
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
-    permission_classes = (IsAdminOrReadOnly)
+    permission_classes = (IsAdminModeratorAuthor, )
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
@@ -59,14 +61,15 @@ class UserViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']   
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_class = []
+    permission_class = (IsAuthenticated, IsAdminUser)
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,) 
     search_fields = ('username',)
 
 
 class UserSignUpView(APIView):
-    def user_signup(request):
+    permission_classes = (AllowAny,)
+    def post (self, request):
         serializer = UserSignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data['username']
@@ -89,6 +92,14 @@ class UserSignUpView(APIView):
             recipient_list=[user.email]
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class TokenView(APIView):
+    def post(self, request):
+        serializer = TokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token = {'token': str(serializer.validated_data)}
+        return Response(token, status=status.HTTP_200_OK)
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer

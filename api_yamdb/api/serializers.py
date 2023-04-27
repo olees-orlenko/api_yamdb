@@ -1,5 +1,7 @@
 import datetime as dt
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Genre, Title, Category, Comment, Review, User
 from datetime import datetime as dt
 
@@ -10,24 +12,33 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = User
-
+    
 
 class UserSignUpSerializer(serializers.ModelSerializer):
-    #username = serializers.CharField(required=True, max_length=150)
-    #email = serializers.EmailField(required=True, max_length=150)
+    username = serializers.CharField(required=True, max_length=150) # исправила орфографическую ошибку в length
+    email = serializers.EmailField(required=True, max_length=150) # и здесь
+
+    def validate_username(self, value):
+        if value.lower() == 'me':
+            raise serializers.ValidationError(
+                f'Недопустипое имя - {value}!'
+                )
+        return value
 
     class Meta:
         fields = ('email', 'username')
         model = User
+    
 
+class TokenSerializer(serializers.ModelSerializer): # добавила Model, было serializers.Serializer
+    username = serializers.CharField(required=True, max_length=150)
+    confirmation_code = serializers.CharField(required=True)
 
-class TokenSerializer(serializers.ModelSerializer):
-    username = serializers.CharField()#required=True, max_length=150)
-    confirmation_code = serializers.CharField()#required=True)
-
-    class Meta:
-        model = User
-        fields = ('username', 'confirmation_code')
+    def validate_code(self, data):
+        user = get_object_or_404(User, username=data['username'])
+        if user.confirmation_code != data['confirmation_code']:
+            raise serializers.ValidationError('Неверный код подтверждения')
+        return RefreshToken.for_user(user).access_token 
 
 
 class CommentSerializer(serializers.ModelSerializer):
