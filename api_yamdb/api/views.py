@@ -8,13 +8,13 @@ from django.core.exceptions import PermissionDenied
 
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+                                        IsAdminUser)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import LimitOffsetPagination
 
-from reviews.models import Comment, Category, Genre, Review, Title, User
+from reviews.models import Category, Genre, Review, Title, User
 from api.permissions import IsAdminOrReadOnly, IsAdminModeratorAuthor, IsAdmin
 from api.serializers import (GenreSerializer, UserSignUpSerializer,
                              TitleSerializer, CategorySerializer, 
@@ -27,8 +27,8 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filterser_fields = ('category__slug', 'genre__slug', 'name', 'year')
-    pagination_class = (LimitOffsetPagination,)
-    permission_classes = (IsAdminOrReadOnly,)
+    pagination_class = LimitOffsetPagination
+    permission_classes = (IsAdminOrReadOnly, )
 
     def get_serializer_class(self):
         if self.action == 'list' or self.action == 'retrieve':
@@ -41,16 +41,17 @@ class GenreViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter,)
-    search_fields = ('^name',)
-    permission_classes = (IsAdminOrReadOnly)
+    search_fields = ('name',)
+    permission_classes = (IsAdminOrReadOnly, )
     lookup_field = 'slug'
+    pagination_class = LimitOffsetPagination
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
-    permission_classes = (IsAdminOrReadOnly)
+    permission_classes = (IsAdminModeratorAuthor, )
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
@@ -60,7 +61,7 @@ class UserViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']   
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_class = (IsAuthenticated, IsAdmin)
+    permission_class = (IsAuthenticated, IsAdminUser)
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,) 
     search_fields = ('username',)
