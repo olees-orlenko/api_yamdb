@@ -3,18 +3,19 @@ from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
-# from django_filters.rest_framework import DjangoFilterBackend
+from django_filters.rest_framework import DjangoFilterBackend
 from django.core.exceptions import PermissionDenied
 
 from rest_framework import filters, mixins, status, viewsets
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import LimitOffsetPagination
 
 from reviews.models import Comment, Category, Genre, Review, Title, User
-from api.permissions import IsAdminOrReadOnly, IsAdminModeratorAuthor
+from api.permissions import IsAdminOrReadOnly, IsAdminModeratorAuthor, IsAdmin
 from api.serializers import (GenreSerializer, GenreSerializer,
                              TitleSerializer, CategorySerializer, 
                              TitleCreateSerializer, CommentSerializer,
@@ -59,14 +60,15 @@ class UserViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']   
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_class = []
+    permission_class = (IsAuthenticated, IsAdmin)
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,) 
     search_fields = ('username',)
 
 
 class UserSignUpView(APIView):
-    def user_signup(request):
+    permission_classes = (AllowAny,)
+    def post (self, request):
         serializer = UserSignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data['username']
@@ -89,6 +91,14 @@ class UserSignUpView(APIView):
             recipient_list=[user.email]
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class TokenView(APIView):
+    def post(self, request):
+        serializer = TokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token = {'token': str(serializer.validated_data)}
+        return Response(token, status=status.HTTP_200_OK)
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
