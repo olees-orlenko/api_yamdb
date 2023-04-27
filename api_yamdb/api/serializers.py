@@ -12,18 +12,22 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
 
 
-class UserSignUpSerializer(serializers.Serializer):
-    username = serializers.CharField(required=True, max_lenght=150)
-    email = serializers.EmailField(required=True, max_lenght=150)
+class UserSignUpSerializer(serializers.ModelSerializer):
+    #username = serializers.CharField(required=True, max_length=150)
+    #email = serializers.EmailField(required=True, max_length=150)
 
     class Meta:
         fields = ('email', 'username')
         model = User
 
 
-class TokenSerializer(serializers.Serializer):
-    username = serializers.CharField(required=True, max_lenght=150)
-    confirmation_code = serializers.CharField(required=True)
+class TokenSerializer(serializers.ModelSerializer):
+    username = serializers.CharField()#required=True, max_length=150)
+    confirmation_code = serializers.CharField()#required=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'confirmation_code')
 
 
 class CommentSerializer(serializers.ModelSerializer):

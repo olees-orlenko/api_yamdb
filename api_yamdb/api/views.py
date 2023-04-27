@@ -1,35 +1,25 @@
-from rest_framework import filters, status, viewsets
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.exceptions import ValidationError
+from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
-
-
-from rest_framework import mixins
-from rest_framework import viewsets
-from django_filters.rest_framework import DjangoFilterBackend
-from api.permissions import IsAdminOrReadOnly, IsAdminModeratorAuthor
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import filters
 from django.core.exceptions import PermissionDenied
-from reviews.models import Genre, Title, Category
-from api.serializers import (
-    GenreSerializer, TitleSerializer,
-    CategorySerializer, TitleCreateSerializer)
-from reviews.models import Genre, Title, Category
+
+from rest_framework import filters, mixins, status, viewsets
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.exceptions import ValidationError
+from rest_framework.pagination import LimitOffsetPagination
+
+from reviews.models import Category, Genre, Review, Title, User
+from api.permissions import IsAdminOrReadOnly, IsAdminModeratorAuthor
 from api.serializers import (GenreSerializer,
-                             TitleSerializer,
-                             CategorySerializer)
-from reviews.models import Comment, Review, Title, User
-from api.serializers import (
-    CommentSerializer, ReviewSerializer,
-    UserSerializer, TokenSerializer, UserSignUpSerializer) 
+                             TitleSerializer, CategorySerializer, 
+                             TitleCreateSerializer, CommentSerializer,
+                             ReviewSerializer, UserSerializer,
+                             TokenSerializer, UserSignUpSerializer)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
