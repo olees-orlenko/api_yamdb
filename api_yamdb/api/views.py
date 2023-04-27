@@ -13,11 +13,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework import filters
-
 
 from reviews.models import Comment, Category, Genre, Review, Title, User
-from api.permissions import IsAdminOrReadOnly, IsAdmin
+from api.permissions import IsAdminOrReadOnly, IsAdminModeratorAuthor, IsAdmin
 from api.serializers import (GenreSerializer, GenreSerializer,
                              TitleSerializer, CategorySerializer, 
                              TitleCreateSerializer, CommentSerializer,
@@ -104,7 +102,29 @@ class TokenView(APIView):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly, )
+    permission_classes = (IsAdminModeratorAuthor, )
+
+    def get_review(self):
+        self.review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
+        return self.review
+
+    def get_queryset(self):
+        review = self.get_review()
+        new_queryset = review.comments.all()
+        return new_queryset
+
+    def perform_create(self, serializer):
+        review = self.get_review ()
+        serializer.save(author=self.request.user, review=review)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save(author=self.request.user, review=review)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    serializer_class = ReviewSerializer
+    permission_classes = (IsAdminModeratorAuthor, )
 
     def get_title(self):
         self.title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -112,7 +132,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         title = self.get_title()
-        new_queryset = title.comments.all()
+        new_queryset = title.reviews.all()
         return new_queryset
 
     def perform_create(self, serializer):
@@ -122,8 +142,3 @@ class CommentViewSet(viewsets.ModelViewSet):
             serializer.save(author=self.request.user, title=title)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
-
-
-class ReviewViewSet(viewsets.ModelViewSet):
-    serializer_class = ReviewSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly, )
