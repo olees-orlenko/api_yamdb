@@ -15,7 +15,12 @@ class IsAdminOrReadOnly(BasePermission):
         elif request.user.role == "admin":
             return True
         return False
-    
+
+
+class IsAdmin(BasePermission): # есть встроенный класс IsAdminUser, нужен ли этот?
+    def has_permission(self, request, view):
+        return request.user.is_admin
+
 
 class IsAdminModeratorAuthor(BasePermission):
      
