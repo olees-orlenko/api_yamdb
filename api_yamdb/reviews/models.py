@@ -1,7 +1,7 @@
-#from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.urls import reverse
 
 
 class User(AbstractUser):
@@ -9,7 +9,7 @@ class User(AbstractUser):
     MODERATOR = 'moderator'
     USER = 'user'
 
-    ROLE_CHOICES =  [
+    ROLE_CHOICES = [
         (ADMIN, ADMIN),
         (MODERATOR, MODERATOR),
         (USER, USER),
@@ -46,15 +46,15 @@ class User(AbstractUser):
         default='user',
         max_length=10,
     )
-    
+
     @property
     def is_admin(self):
         return self.role == self.ADMIN
-    
+
     @property
     def is_moderator(self):
         return self.role == self.MODERATOR
-    
+
     class Meta:
         ordering = ('id',)
         verbose_name = 'Пользователь'
@@ -68,6 +68,9 @@ class Category(models.Model):
 
     name = models.CharField(max_length=256)
     slug = models.SlugField(max_length=50, unique=True)
+
+    def get_absolute_url(self):
+        return reverse('category_detail', args=[str(self.slug)])
 
     def __str__(self):
         return self.name
@@ -97,17 +100,16 @@ class Title(models.Model):
     name = models.CharField(max_length=250, help_text='Название произведения')
     year = models.PositiveIntegerField(help_text='Год выхода произведения')
     category = models.ForeignKey(
-        Category, verbose_name='Slug категории',
+        Category, verbose_name='Категория',
         on_delete=models.SET_NULL,
         null=True,
-        blank=False,
+        blank=True,
     )
     genre = models.ManyToManyField(
         Genre, verbose_name='Slug жанра'
     )
     description = models.TextField('Описание', blank=True)
     rating = models.PositiveIntegerField(null=True, default=None)
-
 
     def __str__(self):
         return self.name
