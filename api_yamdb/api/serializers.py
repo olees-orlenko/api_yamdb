@@ -1,23 +1,34 @@
-import datetime as dt
-from django.forms import ValidationError
-from django.shortcuts import get_object_or_404
-from rest_framework import serializers
-from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import Genre, Title, Category, Comment, Review, User
-from datetime import datetime
+import datetime
 
 from django.db.models import Avg
+from django.forms import ValidationError
+from django.shortcuts import get_object_or_404
+
+from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from reviews.models import Genre, Title, Category, Comment, Review, User
 
 
 class UserSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required=True, max_length=254,)
+    username = serializers.RegexField(required=True, max_length=150,
+                                      regex=r'^[\w.@+-]+$',)
 
     class Meta:
-        fields = '__all__'
+        fields = [
+            'username',
+            'email', 
+            'bio',
+            'first_name', 
+            'last_name', 
+            'role'
+            ]
         model = User
 
 class UserSignUpSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(required=True, max_length=150) # исправила орфографическую ошибку в length
-    email = serializers.EmailField(required=True, max_length=150) # и здесь
+    username = serializers.CharField(required=True, max_length=150)
+    email = serializers.EmailField(required=True, max_length=150)
 
 
     def validate_username(self, value):
@@ -31,7 +42,7 @@ class UserSignUpSerializer(serializers.ModelSerializer):
         fields = ('email', 'username')
         model = User
 
-class TokenSerializer(serializers.ModelSerializer): # добавила Model, было serializers.Serializer
+class TokenSerializer(serializers.ModelSerializer):
 
     username = serializers.CharField(required=True, max_length=150)
     confirmation_code = serializers.CharField(required=True)
@@ -94,7 +105,7 @@ class TitleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate_year(self, value):
-        current_year = datetime.today().year
+        current_year = datetime.datetime.today().year
         if value > current_year:
             raise serializers.ValidationError('Проверьте год выхода!')
         return value
@@ -116,7 +127,7 @@ class TitleCreateSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate_year(self, value):
-        current_year = datetime.today().year
+        current_year = datetime.datetime.today().year
         if value > current_year:
             raise serializers.ValidationError('Проверьте год выхода!')
         return value

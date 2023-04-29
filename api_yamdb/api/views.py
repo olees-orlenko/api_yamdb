@@ -1,10 +1,12 @@
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.core.exceptions import PermissionDenied
+from rest_framework.decorators import action
 
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
@@ -27,7 +29,7 @@ from api.serializers import (GenreSerializer, UserSignUpSerializer,
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all().order_by('name')
     filter_backends = (DjangoFilterBackend,)
-    filterser_fields = ('category__slug', 'genre__slug', 'name', 'year')
+    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
     pagination_class = LimitOffsetPagination
     permission_classes = (IsAdminOrReadOnly, )
 
@@ -63,10 +65,26 @@ class UserViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_class = (IsAuthenticated, IsAdminUser)
+    permission_class = (IsAdminUser,)
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
+    
+    @action(
+        methods=['get', 'patch'],
+        detail=False,
+        permission_classes=(IsAuthenticated, )
+    )
+    
+    def me(self, request):
+        user = request.user
+        if request.method == 'GET':
+            serializer = self.get_serializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(role=user.role, partial=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UserSignUpView(APIView):
