@@ -1,5 +1,7 @@
-from datetime import datetime
 from django.db.models import Avg
+
+import datetime as dt
+from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
 
 from rest_framework import serializers
@@ -24,10 +26,10 @@ class UserSerializer(serializers.ModelSerializer):
             ]
         model = User
 
-
 class UserSignUpSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(required=True, max_length=150)
-    email = serializers.EmailField(required=True, max_length=150)
+    username = serializers.CharField(required=True, max_length=150) # исправила орфографическую ошибку в length
+    email = serializers.EmailField(required=True, max_length=150) # и здесь
+
 
     def validate_username(self, value):
         if value.lower() == 'me':
@@ -40,8 +42,8 @@ class UserSignUpSerializer(serializers.ModelSerializer):
         fields = ('email', 'username')
         model = User
 
+class TokenSerializer(serializers.ModelSerializer): # добавила Model, было serializers.Serializer
 
-class TokenSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=True, max_length=150)
     confirmation_code = serializers.CharField(required=True)
 
@@ -107,10 +109,9 @@ class TitleSerializer(serializers.ModelSerializer):
         if value > current_year:
             raise serializers.ValidationError('Проверьте год выхода!')
         return value
-
+    
     def get_avg_rating(self, obj):
-        return obj.reviews.aggregate(rating=Avg('score', default=0)) #(rating=Avg('score', default=0)) /(Avg('score'))['score__avg']
-
+        return obj.reviews.aggregate(rating=Avg('score'), default=0)
 
 class TitleCreateSerializer(serializers.ModelSerializer):
     """ Сериализатор произведения."""
