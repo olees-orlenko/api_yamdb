@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import LimitOffsetPagination
 
+
 from reviews.models import Category, Genre, Review, Title, User
 from api.permissions import IsAdminOrReadOnly, IsAdminModeratorAuthor, IsAdmin
 from api.serializers import (GenreSerializer, UserSignUpSerializer,
@@ -24,7 +25,7 @@ from api.serializers import (GenreSerializer, UserSignUpSerializer,
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.all().order_by('name')
     filter_backends = (DjangoFilterBackend,)
     filterser_fields = ('category__slug', 'genre__slug', 'name', 'year')
     pagination_class = LimitOffsetPagination
@@ -47,7 +48,8 @@ class GenreViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
     pagination_class = LimitOffsetPagination
 
 
-class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+class CategoryViewSet(viewsets.ModelViewSet):
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
@@ -58,25 +60,26 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    http_method_names = ['get', 'post', 'patch', 'delete']   
+    http_method_names = ['get', 'post', 'patch', 'delete']
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_class = (IsAuthenticated, IsAdminUser)
     lookup_field = 'username'
-    filter_backends = (filters.SearchFilter,) 
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
 
 
 class UserSignUpView(APIView):
     permission_classes = (AllowAny,)
-    def post (self, request):
+
+    def post(self, request):
         serializer = UserSignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data['username']
         email = serializer.validated_data['email']
         try:
             user, _ = User.objects.get_or_create(
-                username=username, 
+                username=username,
                 email=email
             )
         except IntegrityError:
@@ -101,12 +104,14 @@ class TokenView(APIView):
         token = {'token': str(serializer.validated_data)}
         return Response(token, status=status.HTTP_200_OK)
 
+
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (IsAdminModeratorAuthor, )
 
     def get_review(self):
-        self.review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
+        self.review = get_object_or_404(
+            Review, pk=self.kwargs.get('review_id'))
         return self.review
 
     def get_queryset(self):
@@ -115,7 +120,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         return new_queryset
 
     def perform_create(self, serializer):
-        review = self.get_review ()
+        review = self.get_review()
         serializer.save(author=self.request.user, review=review)
         if serializer.is_valid(raise_exception=True):
             serializer.save(author=self.request.user, review=review)
