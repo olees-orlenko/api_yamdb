@@ -1,17 +1,27 @@
-
+from datetime import datetime
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import Genre, Title, Category, Comment, Review, User
-from datetime import datetime
 
-from django.db.models import Avg
+from reviews.models import Genre, Title, Category, Comment, Review, User
 
 
 class UserSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required=True, max_length=254,)
+    username = serializers.RegexField(required=True, max_length=150,
+                                      regex=r'^[\w.@+-]+$',)
 
     class Meta:
-        fields = '__all__'
+        fields = [
+            'username',
+            'email', 
+            'bio',
+            'first_name', 
+            'last_name', 
+            'role'
+            ]
         model = User
 
 
