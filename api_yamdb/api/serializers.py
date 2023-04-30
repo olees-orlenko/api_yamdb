@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 from django.db.models import Avg
 from django.forms import ValidationError
@@ -13,7 +13,7 @@ from reviews.models import Genre, Title, Category, Comment, Review, User
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True, max_length=254,)
     username = serializers.RegexField(required=True, max_length=150,
-                                      regex=r'^[\w.@+-]+$',)
+                                      regex=r'^[\w.@+-]+$')
 
     class Meta:
         fields = [
@@ -27,8 +27,9 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
 
 class UserSignUpSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(required=True, max_length=150)
     email = serializers.EmailField(required=True, max_length=150)
+    username = serializers.RegexField(required=True, max_length=150,
+                                      regex=r'^[\w.@+-]+$')
 
 
     def validate_username(self, value):
@@ -52,7 +53,10 @@ class TokenSerializer(serializers.ModelSerializer):
         if user.confirmation_code != data['confirmation_code']:
             raise serializers.ValidationError('Неверный код подтверждения')
         return RefreshToken.for_user(user).access_token 
-
+    
+    class Meta:
+        fields = ('confirmation_code', 'username')
+        model = User
 
 class CommentSerializer(serializers.ModelSerializer):
     """ Сериализатор комментария."""
@@ -73,6 +77,28 @@ class ReviewSerializer(serializers.ModelSerializer):
                                           slug_field='username'
                                           )
     title = serializers.SlugRelatedField(slug_field='name', read_only=True)
+
+    def validate(self, data):
+        request = self.context['request']
+        title_id = self.context['view'].kwargs.get('title_id')
+        title = get_object_or_404(Title, pk=title_id)
+        if request.method == 'POST':
+            if Review.objects.filter(
+                    title=title,
+                    author=request.user).exists():
+                raise ValidationError(
+                    'Вы можете оставить только 1 отзыв на произведение')
+        return data
+    
+    def validate_score(self, score):
+        if 1 > score > 10:
+            raise serializers.ValidationError(
+                'Оценка должна быть от 1 до 10')
+        return score
+
+    class Meta:
+        fields = '__all__'
+        model = Review
 
     class Meta:
         model = Review
@@ -98,20 +124,21 @@ class TitleSerializer(serializers.ModelSerializer):
     """ Сериализатор произведения."""
     genre = GenreSerializer(read_only=True, many=True)
     category = CategorySerializer(read_only=True)
-    rating = serializers.IntegerField(read_only=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
         fields = '__all__'
 
     def validate_year(self, value):
-        current_year = datetime.datetime.today().year
+        current_year = datetime.today().year
         if value > current_year:
             raise serializers.ValidationError('Проверьте год выхода!')
         return value
     
-    def get_avg_rating(self, obj):
-        return obj.reviews.aggregate(rating=Avg('score'), default=0)
+    def get_rating(self, obj):
+        rating = obj.reviews.aggregate(Avg('score', default=0))
+        return rating.get('score__avg')
 
 class TitleCreateSerializer(serializers.ModelSerializer):
     """ Сериализатор произведения."""
@@ -127,10 +154,11 @@ class TitleCreateSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate_year(self, value):
-        current_year = datetime.datetime.today().year
+        current_year = datetime.today().year
         if value > current_year:
             raise serializers.ValidationError('Проверьте год выхода!')
         return value
 
-    def get_avg_rating(self, obj):
-        return obj.reviews.aggregate(rating=Avg('score'), default=0)
+    def get_rating(self, obj):
+        rating = obj.reviews.aggregate(Avg('score', default=0))
+        return rating.get('score__avg')
