@@ -1,6 +1,6 @@
 from django.db.models import Avg
 
-import datetime as dt
+from datetime import datetime
 from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
 
