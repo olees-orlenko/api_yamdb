@@ -1,11 +1,12 @@
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.core.exceptions import PermissionDenied
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
@@ -23,6 +24,7 @@ from api.serializers import (GenreSerializer, UserSignUpSerializer,
                              TitleCreateSerializer, CommentSerializer,
                              ReviewSerializer, UserSerializer,
                              TokenSerializer)
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -126,7 +128,6 @@ class UserSignUpView(APIView):
 
 
 class TokenView(APIView):
-    # permission_classes = (AllowAny,)
     def post(self, request):
         serializer = TokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

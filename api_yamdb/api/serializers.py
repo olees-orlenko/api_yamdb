@@ -1,6 +1,6 @@
-from django.db.models import Avg
-
 from datetime import datetime
+
+from django.db.models import Avg
 from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
 
@@ -27,8 +27,8 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
 
 class UserSignUpSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(required=True, max_length=150) # исправила орфографическую ошибку в length
-    email = serializers.EmailField(required=True, max_length=150) # и здесь
+    username = serializers.CharField(required=True, max_length=150)
+    email = serializers.EmailField(required=True, max_length=150)
 
 
     def validate_username(self, value):
@@ -42,7 +42,7 @@ class UserSignUpSerializer(serializers.ModelSerializer):
         fields = ('email', 'username')
         model = User
 
-class TokenSerializer(serializers.ModelSerializer): # добавила Model, было serializers.Serializer
+class TokenSerializer(serializers.ModelSerializer):
 
     username = serializers.CharField(required=True, max_length=150)
     confirmation_code = serializers.CharField(required=True)
@@ -52,7 +52,10 @@ class TokenSerializer(serializers.ModelSerializer): # добавила Model, б
         if user.confirmation_code != data['confirmation_code']:
             raise serializers.ValidationError('Неверный код подтверждения')
         return RefreshToken.for_user(user).access_token 
-
+    
+    class Meta:
+        fields = ('confirmation_code', 'username')
+        model = User
 
 class CommentSerializer(serializers.ModelSerializer):
     """ Сериализатор комментария."""
