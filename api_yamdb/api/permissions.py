@@ -21,7 +21,9 @@ class IsAdmin(BasePermission):   # есть встроенный класс IsAd
 
 
 class IsAdminModeratorAuthor(BasePermission):
+
     def has_permission(self, request, view):
+
         return request.method in SAFE_METHODS or request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):

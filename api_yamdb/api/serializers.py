@@ -1,5 +1,7 @@
 from datetime import datetime
+
 from django.db.models import Avg
+from django.forms import ValidationError
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
@@ -30,7 +32,6 @@ class UserSerializer(serializers.ModelSerializer):
             ]
         model = User
 
-
 class UserSignUpSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         required=True, 
@@ -49,7 +50,6 @@ class UserSignUpSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('email', 'username')
         model = User
-
 
 class TokenSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
@@ -115,10 +115,9 @@ class TitleSerializer(serializers.ModelSerializer):
         if value > current_year:
             raise serializers.ValidationError('Проверьте год выхода!')
         return value
-
+    
     def get_avg_rating(self, obj):
-        return obj.reviews.aggregate(rating=Avg('score', default=0)) #(rating=Avg('score', default=0)) /(Avg('score'))['score__avg']
-
+        return obj.reviews.aggregate(rating=Avg('score'), default=0)
 
 class TitleCreateSerializer(serializers.ModelSerializer):
     """ Сериализатор произведения."""
