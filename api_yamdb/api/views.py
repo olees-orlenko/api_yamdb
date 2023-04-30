@@ -26,7 +26,7 @@ from api.serializers import (GenreSerializer, UserSignUpSerializer,
                              TitleCreateSerializer, CommentSerializer,
                              ReviewSerializer, UserSerializer,
                              TokenSerializer)
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 
 
@@ -143,6 +143,18 @@ class TokenView(APIView):
             raise ValidationError('Некорректный код подтверждения')
         token = {'token': str(RefreshToken.for_user(user).access_token)}
         return Response(token, status=status.HTTP_200_OK)
+    # def post(self, request):
+    #     serializer = TokenSerializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     username = serializer.validated_data.get('username')
+    #     user = get_object_or_404(User, username=username)
+    #     confirmation_code = serializer.data['confirmation_code'] #serializer.validated_data.get('confirmation_code')
+    #     if not default_token_generator.check_token(user, confirmation_code):
+    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # token = AccessToken.for_user(user)
+        # return Response(
+        #     {'token': str(token)}, status=status.HTTP_200_OK
+        # )
 
 
 class CommentViewSet(viewsets.ModelViewSet):

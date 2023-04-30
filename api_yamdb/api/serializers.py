@@ -59,6 +59,10 @@ class TokenSerializer(serializers.ModelSerializer):
         )
     confirmation_code = serializers.CharField(required=True)
 
+    class Meta:
+        fields = ('confirmation_code', 'username')
+        model = User
+
 
 class CommentSerializer(serializers.ModelSerializer):
     """ Сериализатор комментария."""
