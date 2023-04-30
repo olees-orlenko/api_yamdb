@@ -25,7 +25,7 @@ class User(AbstractUser):
         'e-mail адрес',
         unique=True,
         blank=False,
-        max_length=254,
+        max_length=50,
     )
     first_name = models.CharField(
         'Имя',
@@ -46,7 +46,7 @@ class User(AbstractUser):
         default='user',
         max_length=10,
     )
-    
+
     @property
     def is_admin(self):
         return self.role == self.ADMIN
