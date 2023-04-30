@@ -46,6 +46,11 @@ class User(AbstractUser):
         default='user',
         max_length=10,
     )
+    confirmation_code = models.CharField(
+        blank=True,
+        null=True,
+        max_length=150,
+    )
 
     @property
     def is_admin(self):
@@ -54,6 +59,10 @@ class User(AbstractUser):
     @property
     def is_moderator(self):
         return self.role == self.MODERATOR
+    
+    @property
+    def is_user(self):
+        return self.role == self.USER
 
     class Meta:
         ordering = ('id',)
@@ -92,7 +101,7 @@ class Genre(models.Model):
     class Meta:
         verbose_name = 'genre'
         verbose_name_plural = 'genres'
-        ordering = ['name']
+        ordering = ('id', 'name')
 
 
 class Title(models.Model):
@@ -140,16 +149,16 @@ class Review(models.Model):
         'Дата добавления', auto_now_add=True, db_index=True
     )
 
-    def str(self):
-        return self.text[:15]
+    def __str__(self):
+        return f'{self.title}, {self.author}, {self.score}'
 
     class Meta:
         ordering = ('-pub_date',)
         constraints = [
             models.UniqueConstraint(
-                fields=['author', 'title'],
+                fields=['title', 'author'],
                 name='unique_review'
-            )
+            ),
         ]
 
 

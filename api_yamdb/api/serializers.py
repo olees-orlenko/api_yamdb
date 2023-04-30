@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 from django.db.models import Avg
 from django.forms import ValidationError
@@ -52,7 +52,10 @@ class TokenSerializer(serializers.ModelSerializer):
         if user.confirmation_code != data['confirmation_code']:
             raise serializers.ValidationError('Неверный код подтверждения')
         return RefreshToken.for_user(user).access_token 
-
+    
+    class Meta:
+        fields = ('confirmation_code', 'username')
+        model = User
 
 class CommentSerializer(serializers.ModelSerializer):
     """ Сериализатор комментария."""
@@ -105,7 +108,7 @@ class TitleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate_year(self, value):
-        current_year = datetime.datetime.today().year
+        current_year = datetime.today().year
         if value > current_year:
             raise serializers.ValidationError('Проверьте год выхода!')
         return value
@@ -127,7 +130,7 @@ class TitleCreateSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate_year(self, value):
-        current_year = datetime.datetime.today().year
+        current_year = datetime.today().year
         if value > current_year:
             raise serializers.ValidationError('Проверьте год выхода!')
         return value
