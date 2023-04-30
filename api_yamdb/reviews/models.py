@@ -92,7 +92,7 @@ class Genre(models.Model):
     class Meta:
         verbose_name = 'genre'
         verbose_name_plural = 'genres'
-        ordering = ['name']
+        ordering = ('id', 'name')
 
 
 class Title(models.Model):

@@ -15,8 +15,8 @@ from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import LimitOffsetPagination
 
-
 from reviews.models import Category, Genre, Review, Title, User
+from api.filters import SlugFilter
 from api.permissions import IsAdminOrReadOnly, IsAdminModeratorAuthor, IsAdmin
 from api.serializers import (GenreSerializer, UserSignUpSerializer,
                              TitleSerializer, CategorySerializer, 
@@ -28,7 +28,8 @@ from api.serializers import (GenreSerializer, UserSignUpSerializer,
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all().order_by('name')
     filter_backends = (DjangoFilterBackend,)
-    filterser_fields = ('category__slug', 'genre__slug', 'name', 'year')
+    filterset_class = (SlugFilter)
+    filterser_fields = ('category', 'genre', 'name', 'year')
     pagination_class = LimitOffsetPagination
     permission_classes = (IsAdminOrReadOnly, )
 
@@ -48,16 +49,26 @@ class GenreViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
     lookup_field = 'slug'
     pagination_class = LimitOffsetPagination
 
+    def retrieve(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def update(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
 
 class CategoryViewSet(viewsets.ModelViewSet):
-
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-
-    permission_classes = (IsAdminModeratorAuthor, )
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
+
+    def retrieve(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def update(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -68,13 +79,13 @@ class UserViewSet(viewsets.ModelViewSet):
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
-    
+
     @action(
         methods=['get', 'patch'],
         detail=False,
         permission_classes=(IsAuthenticated, )
     )
-    
+
     def me(self, request):
         user = request.user
         if request.method == 'GET':
