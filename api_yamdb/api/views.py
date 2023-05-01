@@ -80,7 +80,7 @@ class UserViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_class = (IsOwnerOrAdmin,)
+    permission_classes = (IsOwnerOrAdmin,)
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
@@ -133,28 +133,20 @@ class UserSignUpView(APIView):
 
 
 class TokenView(APIView):
+    permission_classes = (AllowAny,)
+
     def post(self, request):
         serializer = TokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data['username']
         user = get_object_or_404(User, username=username)
-        confirmation_code = serializer.validated_data['confirmation_code']
-        if user.confirmation_code != confirmation_code:
+        confirmation_code = serializer.data['confirmation_code']
+        if not default_token_generator.check_token(user, confirmation_code):
             raise ValidationError('Некорректный код подтверждения')
-        token = {'token': str(RefreshToken.for_user(user).access_token)}
-        return Response(token, status=status.HTTP_200_OK)
-    # def post(self, request):
-    #     serializer = TokenSerializer(data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-    #     username = serializer.validated_data.get('username')
-    #     user = get_object_or_404(User, username=username)
-    #     confirmation_code = serializer.data['confirmation_code'] #serializer.validated_data.get('confirmation_code')
-    #     if not default_token_generator.check_token(user, confirmation_code):
-    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        # token = AccessToken.for_user(user)
-        # return Response(
-        #     {'token': str(token)}, status=status.HTTP_200_OK
-        # )
+        token = AccessToken.for_user(user)
+        return Response(
+            {'token': str(token)}, status=status.HTTP_200_OK
+        )
 
 
 class CommentViewSet(viewsets.ModelViewSet):
