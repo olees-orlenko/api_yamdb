@@ -5,9 +5,7 @@ from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
-from django.core.exceptions import PermissionDenied
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.decorators import action, api_view
 
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
@@ -16,7 +14,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 
 from reviews.models import Category, Genre, Review, Title, User
 from api.filters import SlugFilter
@@ -26,7 +24,6 @@ from api.serializers import (GenreSerializer, UserSignUpSerializer,
                              TitleCreateSerializer, CommentSerializer,
                              ReviewSerializer, UserSerializer,
                              TokenSerializer)
-from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 
 
@@ -102,7 +99,6 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
         
 
-
 class UserSignUpView(APIView):
     permission_classes = (AllowAny,)
 
@@ -119,9 +115,8 @@ class UserSignUpView(APIView):
         except IntegrityError:
             raise ValidationError(
                 'Имя пользователя или email уже используются',
-                status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST
             )
-        user.save()
         confirmation_code = default_token_generator.make_token(user)
         send_mail(
             subject='Подтверждение регистрации.',
@@ -129,6 +124,7 @@ class UserSignUpView(APIView):
             from_email=DEFAULT_FROM_EMAIL,
             recipient_list=[user.email]
         )
+        user.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
