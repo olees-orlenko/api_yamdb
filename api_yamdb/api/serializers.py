@@ -2,31 +2,30 @@ from datetime import datetime
 
 from django.db.models import Avg
 from django.forms import ValidationError
-from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
-from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
+from django.core.validators import validate_email
 
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 
 from reviews.models import Genre, Title, Category, Comment, Review, User
-from .validators import validate_username
+#from .validators import validate_username
 
 
 class UserSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(
-        required=True, 
-        max_length=150, 
-        validators=[
-            validate_username,
-            UniqueValidator(queryset=User.objects.all())
-        ],
-        )
-    email = serializers.EmailField(
-        required=True, 
-        max_length=254,
-        # validators=[UniqueValidator(queryset=User.objects.all())]
-        )
+    username = serializers.RegexField(regex=r'^[\w.@+-]+$', required=True, max_length=50)
+    email = serializers.EmailField(required=True, max_length=254)
+    
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError('Такое имя использовать запрещено')
+        return value
+    
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError('Этот емэйл уже занят')
+        return value
         
     class Meta:
         model = User
@@ -38,25 +37,20 @@ class UserSerializer(serializers.ModelSerializer):
             'bio',
             'role'
             )
+    
 
 class UserSignUpSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(
-        required=True, 
-        max_length=150, 
-        validators=[
-            validate_username,
-            UniqueValidator(queryset=User.objects.all())
-        ],
-        )
-    email = serializers.EmailField(
-        required=True, 
-        max_length=254,
-        validators=[UniqueValidator(queryset=User.objects.all())]
-        )
-
+    email = serializers.EmailField(required=True, max_length=50)
+    username = serializers.RegexField(regex=r'^[\w.@+-]+$', required=True, max_length=50)
+    
     class Meta:
         model = User
-        fields = ('email', 'username')
+        fields = ('username', 'email')
+    
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError('Такое имя использовать запрещено')
+        return value
 
 
 class TokenSerializer(serializers.ModelSerializer):
