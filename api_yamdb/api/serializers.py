@@ -14,23 +14,30 @@ from .validators import validate_username
 
 
 class UserSerializer(serializers.ModelSerializer):
-    username = serializers.RegexField(
+    username = serializers.CharField(
         required=True, 
         max_length=150, 
-        regex=r'^[\w.@+-]+$'
+        validators=[
+            validate_username,
+            UniqueValidator(queryset=User.objects.all())
+        ],
         )
-    email = serializers.EmailField(required=True, max_length=254)
+    email = serializers.EmailField(
+        required=True, 
+        max_length=254,
+        # validators=[UniqueValidator(queryset=User.objects.all())]
+        )
 
     class Meta:
-        fields = [
+        model = User
+        fields = (
             'username',
             'email', 
-            'bio',
             'first_name', 
             'last_name', 
+            'bio',
             'role'
-            ]
-        model = User
+            )
 
 class UserSignUpSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
@@ -48,8 +55,9 @@ class UserSignUpSerializer(serializers.ModelSerializer):
         )
 
     class Meta:
-        fields = ('email', 'username')
         model = User
+        fields = ('email', 'username')
+
 
 class TokenSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
@@ -58,6 +66,10 @@ class TokenSerializer(serializers.ModelSerializer):
         validators=[validate_username]
         )
     confirmation_code = serializers.CharField(required=True)
+
+    class Meta:
+        model = User
+        fields = ('confirmation_code', 'username')
 
 
 class CommentSerializer(serializers.ModelSerializer):

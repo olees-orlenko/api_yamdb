@@ -15,9 +15,9 @@ class IsAdminOrReadOnly(BasePermission):
                 )
 
 
-class IsAdmin(BasePermission):   # есть встроенный класс IsAdminUser, нужен ли этот?
+class IsAdmin(BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_admin
+        return request.user.is_admin and request.user.is_authenticated
 
 
 class IsAdminModeratorAuthor(BasePermission):
