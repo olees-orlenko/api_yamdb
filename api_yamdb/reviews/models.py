@@ -66,19 +66,18 @@ class User(AbstractUser):
 
 class Category(models.Model):
 
-    name = models.CharField(max_length=256)
+    name = models.CharField('Название категории', max_length=256)
     slug = models.SlugField(max_length=50, unique=True)
 
     def get_absolute_url(self):
         return reverse('category_detail', args=[str(self.slug)])
 
     def __str__(self):
-        return self.name
+        return f'{self.name} {self.slug}'
 
     class Meta:
-        verbose_name = 'category'
-        verbose_name_plural = 'categories'
-        ordering = ['name']
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
 
 
 class Genre(models.Model):
@@ -100,10 +99,11 @@ class Title(models.Model):
     name = models.CharField(max_length=250, help_text='Название произведения')
     year = models.PositiveIntegerField(help_text='Год выхода произведения')
     category = models.ForeignKey(
-        Category, verbose_name='Категория',
+        Category,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True,
+        related_name='titles',
+        verbose_name='Категория',
     )
     genre = models.ManyToManyField(
         Genre, verbose_name='Slug жанра'

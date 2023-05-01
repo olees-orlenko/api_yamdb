@@ -53,6 +53,10 @@ class TokenSerializer(serializers.ModelSerializer): # добавила Model, б
             raise serializers.ValidationError('Неверный код подтверждения')
         return RefreshToken.for_user(user).access_token 
 
+    class Meta:
+        fields = ('confirmation_code', 'username')
+        model = User
+
 
 class CommentSerializer(serializers.ModelSerializer):
     """ Сериализатор комментария."""
