@@ -25,8 +25,8 @@ from api.serializers import (GenreSerializer, UserSignUpSerializer,
                              TitleCreateSerializer, CommentSerializer,
                              ReviewSerializer, UserSerializer,
                              TokenSerializer)
-
-#from api_yamdb.settings import DEFAULT_FROM_EMAIL # проверить нужен ли он
+                             
+from api_yamdb.settings import DEFAULT_FROM_EMAIL 
 
 
 class TitleViewSet(viewsets.ModelViewSet):

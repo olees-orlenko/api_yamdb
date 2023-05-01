@@ -132,6 +132,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = BASE_DIR / 'send_mail'
 MAILING_EMAIL = 'confirmation_code@yandex.ru'
 
-#EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails') #не нужно
-#DEFAULT_FROM_EMAIL = 'dlsib@ya.ru' #не нужно
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
+DEFAULT_FROM_EMAIL = 'dlsib@ya.ru'
+
 
