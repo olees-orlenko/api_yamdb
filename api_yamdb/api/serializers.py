@@ -2,50 +2,68 @@ from datetime import datetime
 
 from django.db.models import Avg
 from django.forms import ValidationError
+from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
+from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from reviews.models import Genre, Title, Category, Comment, Review, User
+from .validators import validate_username
 
 
 class UserSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(required=True, max_length=254,)
-    username = serializers.RegexField(required=True, max_length=150,
-                                      regex=r'^[\w.@+-]+$')
-
+    username = serializers.CharField(
+        required=True, 
+        max_length=150, 
+        validators=[
+            validate_username,
+            UniqueValidator(queryset=User.objects.all())
+        ],
+        )
+    email = serializers.EmailField(
+        required=True, 
+        max_length=254,
+        # validators=[UniqueValidator(queryset=User.objects.all())]
+        )
+        
     class Meta:
-        fields = [
+        model = User
+        fields = (
             'username',
             'email', 
-            'bio',
             'first_name', 
             'last_name', 
+            'bio',
             'role'
-            ]
-        model = User
+            )
 
 class UserSignUpSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(required=True, max_length=150)
-    username = serializers.RegexField(required=True, max_length=150,
-                                      regex=r'^[\w.@+-]+$')
-
-
-    def validate_username(self, value):
-        if value.lower() == 'me':
-            raise serializers.ValidationError(
-                f'Недопустипое имя - {value}!'
-            )
-        return value
+    username = serializers.CharField(
+        required=True, 
+        max_length=150, 
+        validators=[
+            validate_username,
+            UniqueValidator(queryset=User.objects.all())
+        ],
+        )
+    email = serializers.EmailField(
+        required=True, 
+        max_length=254,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+        )
 
     class Meta:
-        fields = ('email', 'username')
         model = User
+        fields = ('email', 'username')
+
 
 class TokenSerializer(serializers.ModelSerializer):
-
-    username = serializers.CharField(required=True, max_length=150)
+    username = serializers.CharField(
+        required=True, 
+        max_length=150
+        )
     confirmation_code = serializers.CharField(required=True)
 
     def validate_code(self, data):
@@ -57,6 +75,7 @@ class TokenSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('confirmation_code', 'username')
         model = User
+
 
 class CommentSerializer(serializers.ModelSerializer):
     """ Сериализатор комментария."""
