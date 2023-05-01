@@ -19,7 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
         max_length=150, 
         validators=[
             validate_username,
-            UniqueValidator(queryset=User.objects.all())
+            # UniqueValidator(queryset=User.objects.all())
         ],
         )
     email = serializers.EmailField(
@@ -38,6 +38,7 @@ class UserSerializer(serializers.ModelSerializer):
             'bio',
             'role'
             )
+
 
 class UserSignUpSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
@@ -58,7 +59,7 @@ class UserSignUpSerializer(serializers.ModelSerializer):
         model = User
         fields = ('email', 'username')
 
-
+        
 class TokenSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         required=True, 
