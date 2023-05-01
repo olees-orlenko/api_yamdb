@@ -43,17 +43,26 @@ class User(AbstractUser):
     )
     role = models.CharField(
         choices=ROLE_CHOICES,
-        default='user',
+        default=USER,
         max_length=10,
+    )
+    confirmation_code = models.CharField(
+        blank=True,
+        null=True,
+        max_length=150,
     )
 
     @property
     def is_admin(self):
-        return self.role == self.ADMIN
+        return self.role == self.ADMIN or self.is_superuser
 
     @property
     def is_moderator(self):
         return self.role == self.MODERATOR
+    
+    @property
+    def is_user(self):
+        return self.role == self.USER
 
     class Meta:
         ordering = ('id',)
@@ -140,16 +149,16 @@ class Review(models.Model):
         'Дата добавления', auto_now_add=True, db_index=True
     )
 
-    def str(self):
-        return self.text[:15]
+    def __str__(self):
+        return f'{self.title}, {self.author}, {self.score}'
 
     class Meta:
         ordering = ('-pub_date',)
         constraints = [
             models.UniqueConstraint(
-                fields=['author', 'title'],
+                fields=['title', 'author'],
                 name='unique_review'
-            )
+            ),
         ]
 
 
