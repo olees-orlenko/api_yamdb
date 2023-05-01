@@ -32,5 +32,15 @@ class Command(BaseCommand):
                     print(ALREADY_LOADED_ERROR_MESSAGE)
                     continue
                 reader = DictReader(file)
-                model.objects.bulk_create(model(**data)for data in reader)
-            self.stdout.write(self.style.SUCCESS("Data uploaded successfully"))
+                records = []
+                for row in reader:
+                    if row.get('category') is not None:
+                        row['category'] = Category.objects.get(
+                            id=row['category'])
+                    if row.get('author') is not None:
+                        row['author'] = User.objects.get(id=row['author'])
+                    if row.get('title') is not None:
+                        row['title'] = Title.objects.get(id=row['title'])
+                    records.append(model(**row))
+                model.objects.bulk_create(records)
+                self.stdout.write(self.style.SUCCESS("Данные успешно загружены"))

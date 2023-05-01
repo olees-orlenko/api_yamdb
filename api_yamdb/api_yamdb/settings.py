@@ -27,7 +27,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'api',
-    'reviews.apps.ReviewsConfig',
+    'reviews',
+    #'reviews.apps.ReviewsConfig',
 ]
 
 MIDDLEWARE = [
@@ -46,7 +47,7 @@ TEMPLATES_DIR = BASE_DIR / 'templates'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [TEMPLATES_DIR],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -71,7 +72,7 @@ DATABASES = {
     }
 }
 
-AUTH_USER_MODEL="reviews.User"
+AUTH_USER_MODEL='reviews.User'
 
 # Password validation
 
@@ -130,9 +131,9 @@ SIMPLE_JWT = {
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = BASE_DIR / 'send_mail'
+
 MAILING_EMAIL = 'confirmation_code@yandex.ru'
 
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 DEFAULT_FROM_EMAIL = 'dlsib@ya.ru'
-
 
