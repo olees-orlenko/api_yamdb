@@ -40,6 +40,7 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
+
 class UserSignUpSerializer(serializers.ModelSerializer):
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+$',
@@ -58,7 +59,7 @@ class UserSignUpSerializer(serializers.ModelSerializer):
                 'Такое имя использовать запрещено')
         return value
 
-
+        
 class TokenSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         required=True,
