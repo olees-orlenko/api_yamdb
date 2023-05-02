@@ -79,30 +79,32 @@ class UserViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (IsOwnerOrAdmin,)
+    permission_classes = (IsOwnerOrAdmin, ) 
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
 
     @action(
-        methods=['GET', 'PATCH'],
+        methods=['get', 'patch'],
+        url_path="me",
         detail=False,
-        permission_classes=[IsAuthenticated],
+        permission_classes=[IsAuthenticated]
     )
 
     def me(self, request):
-        user = request.user
+        #user = request.user
         if request.method == 'GET':
-            serializer = UserSerializer(user)
+            serializer = UserSerializer(self.request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        serializer = UserSerializer(user, data=request.data, partial=True)
+        serializer = UserSerializer(self.request.user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save(role=user.role, partial=True)
+        serializer.save(role=self.request.user.role)
         return Response(serializer.data, status=status.HTTP_200_OK)
         
 
 class UserSignUpView(APIView):
     permission_classes = (AllowAny,)
+    serializer_class = UserSignUpSerializer
 
     def post(self, request):
         serializer = UserSignUpSerializer(data=request.data)
@@ -116,8 +118,8 @@ class UserSignUpView(APIView):
             )
         except IntegrityError:
             raise ValidationError(
-                'Имя пользователя или email уже используются',
-                status=status.HTTP_400_BAD_REQUEST
+                'Имя пользователя или email уже используются', 
+                status.HTTP_400_BAD_REQUEST
             )
         confirmation_code = default_token_generator.make_token(user)
         send_mail(
@@ -126,8 +128,9 @@ class UserSignUpView(APIView):
             from_email=DEFAULT_FROM_EMAIL,
             recipient_list=[user.email]
         )
-        user.save()
+        #user.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 class TokenView(APIView):
