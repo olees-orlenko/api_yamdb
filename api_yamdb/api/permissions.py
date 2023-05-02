@@ -5,9 +5,7 @@ class IsAdminOrReadOnly(BasePermission):
     message = 'Данное действие может выполнять только админ!'
 
     def has_object_permission(self, request, view, obj):
-        if request.method in SAFE_METHODS:
-            return True
-        return request.user.is_admin
+        return request.method in SAFE_METHODS or request.user.is_admin
 
     def has_permission(self, request, view):
         return (request.user.is_authenticated

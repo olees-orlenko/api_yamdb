@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
+from django.db.models import Avg
 from rest_framework.decorators import action
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -25,7 +26,9 @@ from api_yamdb.settings import DEFAULT_FROM_EMAIL
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all().order_by('name')
+    queryset = Title.objects.all().annotate(
+        rating=Avg('reviews__score')
+    ).order_by('name')
     filter_backends = (DjangoFilterBackend,)
     filterset_class = (SlugFilter)
     filterser_fields = ('category', 'genre', 'name', 'year')
@@ -55,7 +58,11 @@ class GenreViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(mixins.CreateModelMixin,
+                      mixins.DestroyModelMixin,
+                      mixins.ListModelMixin,
+                      mixins.RetrieveModelMixin,
+                      viewsets.GenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -156,8 +163,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         review = self.get_review()
-        new_queryset = review.comments.all()
-        return new_queryset
+        return review.comments.all()
 
     def perform_create(self, serializer):
         review = self.get_review()
@@ -178,8 +184,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         title = self.get_title()
-        new_queryset = title.reviews.all()
-        return new_queryset
+        return title.reviews.all()
 
     def perform_create(self, serializer):
         title = self.get_title()

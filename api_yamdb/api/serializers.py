@@ -6,27 +6,19 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from reviews.models import Genre, Title, Category, Comment, Review, User
+from api.validators import validate_username
+from reviews.models import (Category, Comment, Genre, Review, Title, User,
+                            EMAIL_LENGTH, USERNAME_LENGTH)
 
 
 class UserSerializer(serializers.ModelSerializer):
-    username = serializers.RegexField(
-        regex=r'^[\w.@+-]+$',
+    username = serializers.CharField(
         required=True,
-        max_length=150,
+        max_length=USERNAME_LENGTH,
+        validators=[
+            validate_username]
     )
-    email = serializers.EmailField(required=True, max_length=254)
-
-    def validate_username(self, value):
-        if User.objects.filter(username=value).exists():
-            raise serializers.ValidationError(
-                'Такое имя использовать запрещено')
-        return value
-
-    def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError('Этот email уже занят')
-        return value
+    email = serializers.EmailField(required=True, max_length=EMAIL_LENGTH)
 
     class Meta:
         model = User
@@ -39,30 +31,36 @@ class UserSerializer(serializers.ModelSerializer):
             'role'
         )
 
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError(
+                f'Имя{value} уже занято')
+        return value
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError(f'email{value} уже занят')
+        return value
+
 
 class UserSignUpSerializer(serializers.ModelSerializer):
-    username = serializers.RegexField(
-        regex=r'^[\w.@+-]+$',
+    username = serializers.CharField(
         required=True,
-        max_length=150
+        max_length=USERNAME_LENGTH,
+        validators=[
+            validate_username]
     )
-    email = serializers.EmailField(required=True, max_length=254)
+    email = serializers.EmailField(required=True, max_length=EMAIL_LENGTH)
 
     class Meta:
         model = User
         fields = ('username', 'email')
 
-    def validate_username(self, value):
-        if value == 'me':
-            raise serializers.ValidationError(
-                'Такое имя использовать запрещено')
-        return value
-
 
 class TokenSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         required=True,
-        max_length=150
+        max_length=USERNAME_LENGTH
     )
     confirmation_code = serializers.CharField(required=True)
 
@@ -74,6 +72,7 @@ class TokenSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ('confirmation_code', 'username')
+        model = User
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -110,12 +109,6 @@ class ReviewSerializer(serializers.ModelSerializer):
                     'Вы можете оставить только 1 отзыв на произведение')
         return data
 
-    def validate_score(self, score):
-        if 1 > score > 10:
-            raise serializers.ValidationError(
-                'Оценка должна быть от 1 до 10')
-        return score
-
     class Meta:
         model = Review
         fields = '__all__'
@@ -145,12 +138,6 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
-
-    def validate_year(self, value):
-        current_year = datetime.today().year
-        if value > current_year:
-            raise serializers.ValidationError('Проверьте год выхода!')
-        return value
 
     def get_rating(self, obj):
         rating = obj.reviews.aggregate(Avg('score', default=0))
