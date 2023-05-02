@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'api',
     'reviews',
-    #'reviews.apps.ReviewsConfig',
+    # 'reviews.apps.ReviewsConfig',
 ]
 
 MIDDLEWARE = [
@@ -72,7 +72,7 @@ DATABASES = {
     }
 }
 
-AUTH_USER_MODEL='reviews.User'
+AUTH_USER_MODEL = 'reviews.User'
 
 # Password validation
 
