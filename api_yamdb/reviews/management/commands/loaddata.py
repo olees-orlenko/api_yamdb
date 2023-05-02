@@ -43,4 +43,5 @@ class Command(BaseCommand):
                         row['title'] = Title.objects.get(id=row['title'])
                     records.append(model(**row))
                 model.objects.bulk_create(records)
-                self.stdout.write(self.style.SUCCESS("Данные успешно загружены"))
+                self.stdout.write(self.style.SUCCESS(
+                    "Данные успешно загружены"))

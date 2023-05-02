@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.urls import reverse
+
 from api.validators import validate_username
 
 
@@ -69,10 +70,10 @@ class User(AbstractUser):
                 fields=['username', 'email'],
                 name='unique_username')
         ]
-        
+
     def __str__(self) -> str:
         return self.username
-    
+
     @property
     def is_admin(self):
         return (self.role == self.ADMIN or self.is_superuser)
@@ -80,7 +81,7 @@ class User(AbstractUser):
     @property
     def is_moderator(self):
         return self.role == self.MODERATOR
-    
+
     @property
     def is_user(self):
         return self.role == self.USER
@@ -118,8 +119,13 @@ class Genre(models.Model):
 
 class Title(models.Model):
 
-    name = models.CharField(max_length=250, help_text='Название произведения')
-    year = models.PositiveIntegerField(help_text='Год выхода произведения')
+    name = models.CharField(
+        max_length=250,
+        help_text='Название произведения'
+    )
+    year = models.PositiveIntegerField(
+        help_text='Год выхода произведения'
+    )
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
@@ -148,18 +154,25 @@ class Title(models.Model):
 
 class Review(models.Model):
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='reviews'
+        User, on_delete=models.CASCADE,
+        related_name='reviews'
     )
     title = models.ForeignKey(
-        Title, on_delete=models.CASCADE, related_name='reviews'
+        Title, on_delete=models.CASCADE,
+        related_name='reviews'
     )
-    score = models.PositiveSmallIntegerField('Оценка', validators=[
+    score = models.PositiveSmallIntegerField(
+        'Оценка',
+        validators=[
             MaxValueValidator(10),
             MinValueValidator(1),
-    ])
+        ]
+    )
     text = models.TextField('Текст отзыва')
     pub_date = models.DateTimeField(
-        'Дата добавления', auto_now_add=True, db_index=True
+        'Дата добавления',
+        auto_now_add=True,
+        db_index=True
     )
 
     def __str__(self):
@@ -176,18 +189,24 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
-    author = models.ForeignKey(User,
-                               on_delete=models.CASCADE,
-                               related_name='comments')
-    review = models.ForeignKey(Review,
-                               on_delete=models.CASCADE,
-                               related_name='comments',
-                               null=True,
-                               blank=True)
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+    review = models.ForeignKey(
+        Review,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        null=True,
+        blank=True
+    )
     text = models.TextField('Текст комментария')
-    pub_date = models.DateTimeField('Дата добавления',
-                                    auto_now_add=True,
-                                    db_index=True)
+    pub_date = models.DateTimeField(
+        'Дата добавления',
+        auto_now_add=True,
+        db_index=True
+    )
 
     def __str__(self):
         return self.text[:15]
