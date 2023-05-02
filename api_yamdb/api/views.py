@@ -99,7 +99,20 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save(role=user.role, partial=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-  
+    
+    # @action(
+    #     methods=['POST'],
+    #     detail=False,
+    #     permission_classes=[IsOwnerOrAdmin],
+    # )
+
+    # def created(self, request, *args, **kwargs):
+    #     user = request.user
+    #     if request.method == 'POST':
+    #         serializer = UserSerializer(user, data=request.data, partial=True)
+    #         serializer.is_valid(raise_exception=True)
+    #         serializer.save(role=user.role, partial=True)
+    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class UserSignUpView(APIView):
     permission_classes = (AllowAny,)
@@ -117,7 +130,7 @@ class UserSignUpView(APIView):
         except IntegrityError:
             raise ValidationError(
                 'Имя пользователя или email уже используются',
-                status=status.HTTP_400_BAD_REQUEST
+                status.HTTP_400_BAD_REQUEST
             )
         confirmation_code = default_token_generator.make_token(user)
         send_mail(
