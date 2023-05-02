@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.urls import reverse
+from api.validators import validate_username
 
 
 class User(AbstractUser):
@@ -19,7 +20,9 @@ class User(AbstractUser):
         'Логин',
         unique=True,
         blank=False,
+        null=False,
         max_length=150,
+        validators=(validate_username,)
     )
     email = models.EmailField(
         'e-mail адрес',
@@ -29,17 +32,21 @@ class User(AbstractUser):
     )
     first_name = models.CharField(
         'Имя',
-        blank=False,
+        blank=True,
+        null=True,
         max_length=150,
     )
     last_name = models.CharField(
         'Фамилия',
         blank=True,
+        null=True,
         max_length=150,
     )
     bio = models.TextField(
         'О пользователе',
         blank=True,
+        null=True,
+        max_length=150
     )
     role = models.CharField(
         choices=ROLE_CHOICES,
@@ -47,14 +54,28 @@ class User(AbstractUser):
         max_length=10,
     )
     confirmation_code = models.CharField(
-        blank=True,
+        blank=False,
         null=True,
         max_length=150,
+        default='XXXX'
     )
 
+    class Meta:
+        ordering = ('username',)
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['username', 'email'],
+                name='unique_username')
+        ]
+        
+    def __str__(self) -> str:
+        return self.username
+    
     @property
     def is_admin(self):
-        return self.role == self.ADMIN or self.is_superuser
+        return (self.role == self.ADMIN or self.is_superuser)
 
     @property
     def is_moderator(self):
@@ -63,14 +84,6 @@ class User(AbstractUser):
     @property
     def is_user(self):
         return self.role == self.USER
-
-    class Meta:
-        ordering = ('id',)
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
-    
-    def __str__(self) -> str:
-        return self.username
 
 
 class Category(models.Model):
