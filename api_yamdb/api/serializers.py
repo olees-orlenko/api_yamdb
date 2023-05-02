@@ -11,6 +11,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from reviews.models import Genre, Title, Category, Comment, Review, User
 from .validators import validate_username
+from django.core.validators import RegexValidator
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -19,7 +20,7 @@ class UserSerializer(serializers.ModelSerializer):
         max_length=150, 
         validators=[
             validate_username,
-            # UniqueValidator(queryset=User.objects.all())
+            # UniqueValidator(queryset=User.objects.all()),
         ],
         )
     email = serializers.EmailField(
@@ -46,18 +47,19 @@ class UserSignUpSerializer(serializers.ModelSerializer):
         max_length=150, 
         validators=[
             validate_username,
-            UniqueValidator(queryset=User.objects.all())
+            # UniqueValidator(queryset=User.objects.all())
         ],
         )
     email = serializers.EmailField(
         required=True, 
         max_length=254,
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        # validators=[UniqueValidator(queryset=User.objects.all())]
         )
 
     class Meta:
         model = User
         fields = ('email', 'username')
+        unique = ('email', 'username')
 
         
 class TokenSerializer(serializers.ModelSerializer):
