@@ -1,4 +1,5 @@
 from django_filters import rest_framework as filters
+
 from reviews.models import Title
 
 
@@ -11,6 +12,3 @@ class SlugFilter(filters.FilterSet):
     class Meta:
         model = Title
         fields = 'category', 'genre', 'year', 'name'
-
-
-

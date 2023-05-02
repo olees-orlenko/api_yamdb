@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'api',
     'reviews',
-    #'reviews.apps.ReviewsConfig',
+    # 'reviews.apps.ReviewsConfig',
 ]
 
 MIDDLEWARE = [
@@ -72,7 +72,7 @@ DATABASES = {
     }
 }
 
-AUTH_USER_MODEL='reviews.User'
+AUTH_USER_MODEL = 'reviews.User'
 
 # Password validation
 
@@ -113,9 +113,6 @@ STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
 
 REST_FRAMEWORK = {
-    # 'DEFAULT_PERMISSION_CLASSES': [
-    #     'rest_framework.permissions.IsAdminUser',
-    # ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 10,
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -136,4 +133,3 @@ MAILING_EMAIL = 'confirmation_code@yandex.ru'
 
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 DEFAULT_FROM_EMAIL = 'dlsib@ya.ru'
-
