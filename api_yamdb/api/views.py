@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
+
 from rest_framework.decorators import action, api_view, permission_classes
 
 from rest_framework import filters, mixins, status, viewsets
@@ -14,7 +15,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Category, Genre, Review, Title, User
 from api.filters import SlugFilter
@@ -24,7 +25,8 @@ from api.serializers import (GenreSerializer, UserSignUpSerializer,
                              TitleCreateSerializer, CommentSerializer,
                              ReviewSerializer, UserSerializer,
                              TokenSerializer)
-from api_yamdb.settings import DEFAULT_FROM_EMAIL
+                             
+from api_yamdb.settings import DEFAULT_FROM_EMAIL 
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -134,11 +136,11 @@ class TokenView(APIView):
     def post(self, request):
         serializer = TokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        username = serializer.validated_data['username']
+        username = serializer.validated_data.get('username')
         user = get_object_or_404(User, username=username)
-        confirmation_code = serializer.data['confirmation_code']
+        confirmation_code = serializer.data['confirmation_code'] #serializer.validated_data.get('confirmation_code')
         if not default_token_generator.check_token(user, confirmation_code):
-            raise ValidationError('Некорректный код подтверждения')
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         token = AccessToken.for_user(user)
         return Response(
             {'token': str(token)}, status=status.HTTP_200_OK
