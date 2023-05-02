@@ -26,3 +26,4 @@ urlpatterns = [
     path('v1/auth/signup/', UserSignUpView.as_view(), name='signup'),
     path('v1/auth/token/', TokenView.as_view(), name='token'),
 ]
+
